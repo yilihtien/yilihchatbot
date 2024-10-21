@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "public/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/login", "dest": "/api/login.js" },
+    { "src": "/chat", "methods": ["GET"], "dest": "/public/chat.html" },
+    { "src": "/chat", "methods": ["POST"], "dest": "/api/index.js" },
+    { "src": "/new-chat", "methods": ["POST"], "dest": "/api/index.js" },
+    { "src": "/(.*)", "dest": "/api/index.js" }
+  ]
+}
