@@ -42,7 +42,7 @@ app.post('/chat', async (req, res) => {
     const events = await client.streamChatCompletions(
       process.env.AZURE_OPENAI_DEPLOYMENT_NAME,
       messages,
-      { maxTokens: 4096 },Stream=true
+      { maxTokens: 4096 }
     );
 
     res.writeHead(200, {
