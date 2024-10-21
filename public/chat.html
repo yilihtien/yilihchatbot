@@ -273,24 +273,12 @@
                     const chunk = decoder.decode(value);
                     botResponse += chunk;
                     
-                    // 檢查是否接收到結束標記
-                    if (botResponse.includes('[END_OF_RESPONSE]')) {
-                        botResponse = botResponse.replace('[END_OF_RESPONSE]', '');
-                        break;
-                    }
-                    
                     // 更新UI
                     botMessageContent.innerHTML = formatMessage(botResponse);
                     Prism.highlightAll();
                     scrollToBottom();
                 }
-
-                // 最後一次更新UI,確保顯示完整的回應
-                botMessageContent.innerHTML = formatMessage(botResponse);
-                Prism.highlightAll();
-                scrollToBottom();
-
-                console.log('Full bot response:', botResponse);
+                console.log(botResponse);
                 return botResponse;
             } catch (error) {
                 console.error('Error:', error);
@@ -349,62 +337,6 @@
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = text;
             return tempDiv.textContent;
-        }
-
-        // 添加一個重新生成按鈕的函數
-        function addRegenerateButton(messageElement) {
-            const regenerateButton = document.createElement('button');
-            regenerateButton.textContent = '重新生成';
-            regenerateButton.classList.add('btn', 'btn-secondary', 'mt-2');
-            regenerateButton.onclick = () => regenerateResponse(messageElement);
-            messageElement.appendChild(regenerateButton);
-        }
-
-        // 重新生成回應的函數
-        async function regenerateResponse(messageElement) {
-            const userMessage = chatHistory[chatHistory.length - 2].content; // 獲取最後一條用戶消息
-            messageElement.innerHTML = ''; // 清空當前的bot消息
-            await sendMessage(userMessage); // 重新發送請求
-        }
-
-        // 修改 addMessage 函數,為bot消息添加重新生成按鈕
-        function addMessage(sender, message) {
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
-            
-            const avatar = document.createElement('span');
-            avatar.classList.add('avatar');
-            avatar.textContent = sender === 'user' ? '👨' : '🤖';
-            
-            const messageContent = document.createElement('div');
-            messageContent.classList.add('message-content');
-            messageContent.textContent = message; // 直接設置文本內容
-            
-            const copyIcon = document.createElement('span');
-            copyIcon.classList.add('copy-icon');
-            copyIcon.innerHTML = '<i class="fas fa-copy"></i>';
-            copyIcon.onclick = () => copyMessage(message);
-            
-            messageElement.appendChild(avatar);
-            messageElement.appendChild(messageContent);
-            if (sender === 'user') {
-                messageElement.appendChild(copyIcon);
-            }
-            
-            chatMessages.appendChild(messageElement);
-            scrollToBottom();
-
-            console.log('Added message:', sender, message); // 調試信息
-            console.log('Message element:', messageElement); // 調試信息
-
-            // 將消息添加到聊天歷史
-            chatHistory.push({ role: sender === 'user' ? 'user' : 'assistant', content: message });
-
-            if (sender === 'bot') {
-                addRegenerateButton(messageElement);
-            }
-
-            return messageContent;
         }
     </script>
 </body>
