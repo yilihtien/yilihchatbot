@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const { OpenAIClient, AzureKeyCredential } = require("@azure/openai");
+const { Stream } = require('stream');
 
 const app = express();
 
@@ -41,7 +42,7 @@ app.post('/chat', async (req, res) => {
     const events = await client.streamChatCompletions(
       process.env.AZURE_OPENAI_DEPLOYMENT_NAME,
       messages,
-      { maxTokens: 4096 }
+      { maxTokens: 4096 },Stream=true
     );
 
     res.writeHead(200, {
