@@ -35,7 +35,7 @@ app.post('/login', (req, res) => {
 app.get('/chat', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'chat.html'));
 });
-
+// 聊天
 app.post('/chat', async (req, res) => {
   const { messages, sessionId } = req.body;
   try {
