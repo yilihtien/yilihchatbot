@@ -59,7 +59,11 @@ app.post('/chat', async (req, res) => {
       }
     }
 
+    // 确保响应结束
+    res.write('\n[DONE]');
     res.end();
+
+    console.log('Full bot response:', botResponse);
   } catch (error) {
     console.error('Error:', error);
     if (!res.headersSent) {
@@ -67,6 +71,7 @@ app.post('/chat', async (req, res) => {
     }
   }
 });
+//
 
 // 添加新的路由來開始新的對話
 app.post('/new-chat', async (req, res) => {

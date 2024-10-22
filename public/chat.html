@@ -252,39 +252,54 @@
         }
 
         async function sendMessage(message) {
-            try {
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ messages: chatHistory, sessionId }),
-                });
+    try {
+        const response = await fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ messages: chatHistory, sessionId }),
+        });
 
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let botResponse = '';
-                const botMessageContent = addMessage('bot', '');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let botResponse = '';
+        const botMessageContent = addMessage('bot', '');
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    
-                    const chunk = decoder.decode(value);
-                    botResponse += chunk;
-                    
-                    // 更新UI
-                    botMessageContent.innerHTML = formatMessage(botResponse);
-                    Prism.highlightAll();
-                    scrollToBottom();
-                }
-                console.log(botResponse);
-                return botResponse;
-            } catch (error) {
-                console.error('Error:', error);
-                return '抱歉，發生錯誤。請稍後再試。';
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            if (chunk.includes('[DONE]')) {
+                botResponse += chunk.replace('[DONE]', '');
+                break;
             }
+            botResponse += chunk;
+            
+            // 更新UI
+            botMessageContent.innerHTML = formatMessage(botResponse);
+            Prism.highlightAll();
+            scrollToBottom();
         }
+
+        // 最后一次更新UI，以确保显示完整的响应
+        botMessageContent.innerHTML = formatMessage(botResponse);
+        Prism.highlightAll();
+        scrollToBottom();
+
+        console.log('Full bot response:', botResponse);
+        
+        // 将完整的机器人响应添加到聊天历史
+        chatHistory.push({ role: 'assistant', content: botResponse });
+
+        return botResponse;
+    } catch (error) {
+        console.error('Error:', error);
+        return '抱歉，發生錯誤。請稍後再試。';
+    }
+}
+
 
         function formatMessage(message) {
             // 將 Markdown 轉換為 HTML
