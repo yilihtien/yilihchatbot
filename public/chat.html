@@ -16,13 +16,29 @@
             display: flex;
             flex-direction: column;
         }
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            padding: 20px;
-            padding-bottom: 70px; /* 為輸入框留出空間 */
-        }
+        #userInput {
+    resize: none;
+    overflow-y: auto; /* 改為auto，允許在需要時顯示捲軸 */
+    min-height: 38px; /* 設定最小高度 */
+    max-height: 33vh; /* 設定最大高度為視窗高度的1/3 */
+}
+
+#chatForm {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: white;
+    padding: 10px;
+    z-index: 1000;
+    max-height: calc(33vh + 20px); /* 表單最大高度為視窗高度1/3加上padding */
+    overflow: visible;
+}
+
+.chat-container {
+    padding-bottom: calc(33vh + 30px); /* 更新底部padding，確保內容不被input遮擋 */
+}
+
         .chat-messages {
             flex-grow: 1;
             overflow-y: auto;
@@ -73,10 +89,7 @@
             padding: 2px 5px;
             color: #333;
         }
-        #userInput {
-            resize: none;
-            overflow-y: hidden;
-        }
+        
         pre {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -114,15 +127,7 @@
             right: 10px;
             z-index: 1001;
         }
-        #chatForm {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: white;
-            padding: 10px;
-            z-index: 1000;
-        }
+        
         .input-group {
             position: relative;
         }
@@ -189,10 +194,12 @@
                 submitBtn.style.display = 'none';
             }
             
-            // 調整輸入框高度的代碼保持不變
+            // 自動調整高度
             this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
+            const newHeight = Math.min(this.scrollHeight, window.innerHeight / 3);
+            this.style.height = newHeight + 'px';
         });
+
 
         userInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -252,54 +259,39 @@
         }
 
         async function sendMessage(message) {
-    try {
-        const response = await fetch('/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ messages: chatHistory, sessionId }),
-        });
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ messages: chatHistory, sessionId }),
+                });
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let botResponse = '';
-        const botMessageContent = addMessage('bot', '');
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let botResponse = '';
+                const botMessageContent = addMessage('bot', '');
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            const chunk = decoder.decode(value);
-            if (chunk.includes('[DONE]')) {
-                botResponse += chunk.replace('[DONE]', '');
-                break;
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    botResponse += chunk;
+                    
+                    // 更新UI
+                    botMessageContent.innerHTML = formatMessage(botResponse);
+                    Prism.highlightAll();
+                    scrollToBottom();
+                }
+                console.log(botResponse);
+                return botResponse;
+            } catch (error) {
+                console.error('Error:', error);
+                return '抱歉，發生錯誤。請稍後再試。';
             }
-            botResponse += chunk;
-            
-            // 更新UI
-            botMessageContent.innerHTML = formatMessage(botResponse);
-            Prism.highlightAll();
-            scrollToBottom();
         }
-
-        // 最后一次更新UI，以确保显示完整的响应
-        botMessageContent.innerHTML = formatMessage(botResponse);
-        Prism.highlightAll();
-        scrollToBottom();
-
-        console.log('Full bot response:', botResponse);
-        
-        // 将完整的机器人响应添加到聊天历史
-        chatHistory.push({ role: 'assistant', content: botResponse });
-
-        return botResponse;
-    } catch (error) {
-        console.error('Error:', error);
-        return '抱歉，發生錯誤。請稍後再試。';
-    }
-}
-
 
         function formatMessage(message) {
             // 將 Markdown 轉換為 HTML
